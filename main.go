@@ -45,7 +45,11 @@ func first(texts ...string) (string, error) {
 }
 
 var cmd = &cobra.Command{
-	Use:  "memify [--flags] <path/to/video>",
+	Use: "memify [--flags] <path/to/video>",
+	Example: `
+	# Create a meme with top text
+	memify --top "My funny meme!" ~/funny-meme-clip.mp4
+	`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		text, err := first(top, bottom, left, right)
@@ -138,6 +142,8 @@ func main() {
 		cmd,
 		fang.WithFlagTypes(),
 		fang.WithNotifySignal(syscall.SIGINT, syscall.SIGTERM),
+		fang.WithoutCompletions(),
+		fang.WithoutManpage(),
 		fang.WithShorthandPadding(),
 		fang.WithoutCompletions(),
 	)
