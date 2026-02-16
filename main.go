@@ -142,6 +142,8 @@ func main() {
 		cmd,
 		fang.WithFlagTypes(),
 		fang.WithNotifySignal(syscall.SIGINT, syscall.SIGTERM),
+		fang.WithoutCompletions(),
+		fang.WithoutManpage(),
 		fang.WithShorthandPadding(),
 		fang.WithoutCompletions(),
 	)
