@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"syscall"
 
+	"github.com/AitihyaSenpai/memify/internal/spinner"
 	"github.com/Nadim147c/fang"
 	"github.com/spf13/cobra"
 )
@@ -60,23 +61,26 @@ var cmd = &cobra.Command{
 		const size = 1000
 
 		buf := bytes.NewBuffer(nil)
-		magickCmd := exec.CommandContext(
-			cmd.Context(),
-			"magick",
-			"-size", fmt.Sprintf("%.0fx%d", size*ratio, size),
-			"xc:white",
-			"-gravity", "center",
-			"-font", font,
-			"-fill", "black",
-			"caption:"+text,
-			"-colorspace", "sRGB",
-			"-composite",
-			"png:-", // write output to stdout as PNG
-		)
-		magickCmd.Stdout = buf
-		magickCmd.Stderr = os.Stderr
 
-		if err := magickCmd.Run(); err != nil {
+		err = spinner.Run(cmd.Context(), "Writing text...", func(ctx *spinner.Context) error {
+			magickCmd := exec.CommandContext(
+				ctx,
+				"magick",
+				"-size", fmt.Sprintf("%.0fx%d", size*ratio, size),
+				"xc:white",
+				"-gravity", "center",
+				"-family", font,
+				"-fill", "black",
+				"caption:"+text,
+				"-colorspace", "sRGB",
+				"-composite",
+				"png:-", // write output to stdout as PNG
+			)
+			magickCmd.Stdout = buf
+			magickCmd.Stderr = os.Stderr
+			return magickCmd.Run()
+		})
+		if err != nil {
 			return err
 		}
 
@@ -114,25 +118,26 @@ var cmd = &cobra.Command{
 			`
 		}
 
-		ffmpegCmd := exec.CommandContext(
-			cmd.Context(),
-			"ffmpeg",
-			"-i", args[0],
-			"-i", "pipe:0",
-			"-filter_complex", filterComplex,
-			"-map", "0:a?",
-			"-map_metadata", "-1",
-			"-c:v", "libx264",
-			"-crf", "23",
-			"-preset", "veryfast",
-			"-y", output,
-		)
+		return spinner.Run(cmd.Context(), "Generating meme...", func(ctx *spinner.Context) error {
+			ffmpegCmd := exec.CommandContext(
+				cmd.Context(),
+				"ffmpeg",
+				"-i", args[0],
+				"-i", "pipe:0",
+				"-filter_complex", filterComplex,
+				"-map", "0:a?",
+				"-map_metadata", "-1",
+				"-c:v", "libx264",
+				"-crf", "23",
+				"-preset", "veryfast",
+				"-y", output,
+			)
 
-		ffmpegCmd.Stderr = os.Stderr
-		ffmpegCmd.Stdout = os.Stdout
-		ffmpegCmd.Stdin = buf
-
-		return ffmpegCmd.Run()
+			ffmpegCmd.Stderr = ctx
+			ffmpegCmd.Stdout = os.Stdout
+			ffmpegCmd.Stdin = buf
+			return ffmpegCmd.Run()
+		})
 	},
 }
 
