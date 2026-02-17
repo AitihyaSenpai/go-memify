@@ -66,7 +66,7 @@ var cmd = &cobra.Command{
 			"-size", fmt.Sprintf("%.0fx%d", size*ratio, size),
 			"xc:white",
 			"-gravity", "center",
-			"-font", font,
+			"-family", font,
 			"-fill", "black",
 			"caption:"+text,
 			"-colorspace", "sRGB",
